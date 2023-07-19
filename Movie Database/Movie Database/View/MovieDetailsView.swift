@@ -43,7 +43,8 @@ struct MovieDetailsView: View {
         makeMovieOverView(
           title: movie.title,
           actors: movie.actors,
-          releaseDate: movie.released
+          releaseDate: movie.released,
+          imdbRating: movie.imdbRating
         )
       }
       .padding()
@@ -53,23 +54,33 @@ struct MovieDetailsView: View {
   private func makeMovieOverView(
     title: String,
     actors: String,
-    releaseDate: String
+    releaseDate: String,
+    imdbRating: String
   ) -> some View {
     
     VStack(alignment: .leading, spacing: 3) {
       Text(title)
         .fontWeight(.black)
+      
       VStack(alignment: .leading, spacing: 5) {
         Text("Cast & Crew:")
           .fontWeight(.semibold)
         Text(actors)
           .fontWeight(.regular)
       }
+            
       VStack(alignment: .leading, spacing: 5) {
-        Text("Releas Date:")
+        Text("Release Date:")
           .fontWeight(.semibold)
         Text(releaseDate)
       }
+      
+      VStack(alignment: .leading, spacing: 5) {
+        Text("IMDB Rating:")
+          .fontWeight(.semibold)
+        Text(imdbRating)
+      }
+
       VStack(alignment: .leading, spacing: 5) {
         Text("Rating:")
           .fontWeight(.semibold)
@@ -96,7 +107,7 @@ struct MovieDetailsView: View {
   
   private func makePlotView() -> some View {
     VStack(alignment: .leading) {
-      Text("Plot")
+      Text("Plot:")
         .font(.title)
         .fontWeight(.semibold)
       Text(movie.plot)
