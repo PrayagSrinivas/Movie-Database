@@ -9,9 +9,9 @@ import SwiftUI
 
 @main
 struct Movie_DatabaseApp: App {
-    var body: some Scene {
-        WindowGroup {
-          DashBoardView()
-        }
+  var body: some Scene {
+    WindowGroup {
+      DashBoardView()
     }
+  }
 }

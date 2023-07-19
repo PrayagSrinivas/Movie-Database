@@ -31,7 +31,7 @@ struct FilteredListView: View {
     .onAppear {
       dataForTheList = viewModel.createTheFilteredList(filterType: filterType, filterKey: filterKey)
     }
-
+    
     .navigationTitle("Showing results for: \(filterKey) ")
     .navigationBarTitleDisplayMode(.inline)    
   }

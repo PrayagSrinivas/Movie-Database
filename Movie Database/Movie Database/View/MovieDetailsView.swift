@@ -18,44 +18,51 @@ struct MovieDetailsView: View {
   }
   
   var body: some View {
-    HStack() {
-      posterViewWithMovieInfo
-    }
     ScrollView {
+      posterViewWithMovieInfo
       makePlotView()
     }
+    .navigationTitle("Trivia")
+    .navigationBarTitleDisplayMode(.inline)
   }
   
   private var posterViewWithMovieInfo: some View {
-    HStack() {
+    VStack(alignment: .leading) {
       AsyncImage(url: URL(string: movie.poster)){image in
-        image.resizable()
+        image
+          .resizable()
+          .aspectRatio(contentMode: .fill)
       } placeholder: {
         Image("Placeholder")
           .frame(width: 150, height: 150)
           .background(Color.gray)
       }
-        .frame(width: 150, height: 150)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-        .padding()
+      .frame(maxWidth: .infinity)
+      .frame(height: 350)
+      .clipShape(RoundedRectangle(cornerRadius: 10))
       
       VStack(alignment: .leading) {
         makeMovieOverView(
           title: movie.title,
           actors: movie.actors,
           releaseDate: movie.released,
-          imdbRating: movie.imdbRating
+          imdbRating: movie.imdbRating,
+          duration: movie.year,
+          genre: movie.genre
         )
       }
-      .padding()
     }
+    .padding()
+    
   }
   
   private func makeMovieOverView(
     title: String,
     actors: String,
     releaseDate: String,
-    imdbRating: String
+    imdbRating: String,
+    duration: String,
+    genre: String
   ) -> some View {
     
     VStack(alignment: .leading, spacing: 3) {
@@ -68,7 +75,7 @@ struct MovieDetailsView: View {
         Text(actors)
           .fontWeight(.regular)
       }
-            
+      
       VStack(alignment: .leading, spacing: 5) {
         Text("Release Date:")
           .fontWeight(.semibold)
@@ -76,11 +83,23 @@ struct MovieDetailsView: View {
       }
       
       VStack(alignment: .leading, spacing: 5) {
+        Text("Duration:")
+          .fontWeight(.semibold)
+        Text(duration)
+      }
+      
+      VStack(alignment: .leading, spacing: 5) {
+        Text("Genre:")
+          .fontWeight(.semibold)
+        Text(genre)
+      }
+      
+      VStack(alignment: .leading, spacing: 5) {
         Text("IMDB Rating:")
           .fontWeight(.semibold)
         Text(imdbRating)
       }
-
+      
       VStack(alignment: .leading, spacing: 5) {
         Text("Rating:")
           .fontWeight(.semibold)

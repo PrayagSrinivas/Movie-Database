@@ -9,7 +9,7 @@ import SwiftUI
 
 class ViewModel: ObservableObject {
   @Published var movies = [MovieModel]()
-
+  
   var filterItems: [FilterModel] = []
   
   var yearSubItemData: [FilterModel] = []
@@ -79,7 +79,7 @@ class ViewModel: ObservableObject {
         )
       )
     }
-
+    
     filterItems = [
       FilterModel(
         name: "Year",
@@ -119,7 +119,7 @@ class ViewModel: ObservableObject {
   func createTheFilteredList(
     filterType: FilterType,
     filterKey: String
-    ) -> [MovieModel] {
+  ) -> [MovieModel] {
     var data: [MovieModel] = []
     
     switch filterType {
