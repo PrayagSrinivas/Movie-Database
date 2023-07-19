@@ -1,6 +1,6 @@
 # Movie-Database
 
-Welcome to the Movie Filter and Search App! This application allows you to filter and search for movies based on various categories such as Actor, Director, Genre, and Year. You can also search for movies using keywords related to these categories. Once you find a movie, you can tap on it to view detailed information such as the poster, release date, cast and crew, and plot. Additionally, you have the option to view critic ratings from available critics.
+Welcome to the Movie Database app! This application allows you to filter and search for movies based on various categories such as Actor, Director, Genre, and Year. You can also search for movies using keywords related to these categories. Once you find a movie, you can tap on it to view detailed information such as the poster, release date, cast and crew, and plot. Additionally, you have the option to view critic ratings from available critics.
 
 ## Features
 ### Filtering:
