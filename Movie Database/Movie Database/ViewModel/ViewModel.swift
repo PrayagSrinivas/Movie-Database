@@ -9,18 +9,22 @@ import SwiftUI
 
 class ViewModel: ObservableObject {
   @Published var movies = [MovieModel]()
+  var showError: Bool = false
   
   var filterItems: [FilterModel] = []
+  var errorMessage: String = ""
   
   var yearSubItemData: [FilterModel] = []
   var actorSubItemData: [FilterModel] = []
   var directorSubItemData: [FilterModel] = []
   var genreSubItemData: [FilterModel] = []
+  var universalSubItemData: [FilterModel] = []
   
   var filteredYear: [String] = []
   var filteredGenre: [String] = []
   var filteredDirectors: [String] = []
   var filteredActors: [String] = []
+  
   
   init() {
     loadDataAndMakeFilters()
@@ -28,21 +32,25 @@ class ViewModel: ObservableObject {
   
   private func loadDataAndMakeFilters(){
     guard let url = Bundle.main.url(forResource: "movies", withExtension: "json") else {
-      print("Json file not found")
+      showError = true
+      errorMessage = "Invalid JSON"
       return
     }
     
     let data = try? Data(contentsOf: url)
     let movies = try? JSONDecoder().decode([MovieModel].self, from: data!)
-    if let movies = movies {
-      self.movies = movies
+    guard let movies = movies else {
+      showError = true
+      errorMessage = "Invalid JSON"
+      return
     }
+    self.movies = movies
     do {
       filterAll()
     }
   }
   
-  private func createFilters() {
+  private func makeSubFilterModels() {
     filteredGenre.removingDuplicates{ $0.hashValue }.forEach { genre in
       genreSubItemData.append(
         FilterModel(
@@ -79,7 +87,22 @@ class ViewModel: ObservableObject {
         )
       )
     }
-    
+    movies.sorted{$0.title < $1.title}.forEach { item in
+      universalSubItemData.append(
+        FilterModel(
+          name: item.title,
+          image: item.poster,
+          presentAllMovies: true,
+          releaseDate: item.released
+        )
+      )
+    }
+    do {
+      makeFilterModels()
+    }
+  }
+  
+  private func makeFilterModels() {
     filterItems = [
       FilterModel(
         name: "Year",
@@ -93,13 +116,18 @@ class ViewModel: ObservableObject {
       ),
       FilterModel(
         name: "Directors",
-        image: "Director",
+        image: "Directors",
         subMenuItems: directorSubItemData.sorted{$0.name < $1.name}
       ),
       FilterModel(
         name: "Actors",
-        image: "Actor",
+        image: "Actors",
         subMenuItems: actorSubItemData.sorted{$0.name < $1.name}
+      ),
+      FilterModel(
+        name: "All Movies",
+        image: "All Movies",
+        subMenuItems: universalSubItemData
       )
     ]
   }
@@ -112,7 +140,7 @@ class ViewModel: ObservableObject {
       filteredYear += Array(Set(item.year.components(separatedBy: "-")))
     }
     do {
-      createFilters()
+      makeSubFilterModels()
     }
   }
   
@@ -139,5 +167,27 @@ class ViewModel: ObservableObject {
     }
     
     return data
+  }
+  
+  private func networkCall() {
+    let url = ""
+    //TODO: Actual URL will be added here.
+    guard let url = URL(string: url) else { return }
+    URLSession.shared.dataTask(with: url) {[weak self] data, _, error in
+      guard let self else { return }
+      
+      if let data = data {
+        do {
+          let decodedData = try JSONDecoder().decode([MovieModel].self, from: data)
+          self.movies = decodedData
+        } catch {
+          showError = true
+          errorMessage = "Error decoding JSON: \(error.localizedDescription)"
+        }
+      } else if let error = error {
+        showError = true
+        errorMessage = "Error decoding JSON: \(error.localizedDescription)"
+      }
+    }.resume()
   }
 }

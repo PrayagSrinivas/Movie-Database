@@ -14,4 +14,6 @@ struct FilterModel: Identifiable {
   var subMenuItems: [FilterModel]?
   var isSubItem: Bool = false
   var filterType: FilterType?
+  var presentAllMovies: Bool = false
+  var releaseDate: String?
 }

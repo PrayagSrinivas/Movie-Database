@@ -53,7 +53,6 @@ struct MovieDetailsView: View {
       }
     }
     .padding()
-    
   }
   
   private func makeMovieOverView(
