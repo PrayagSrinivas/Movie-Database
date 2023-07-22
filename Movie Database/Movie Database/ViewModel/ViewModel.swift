@@ -10,172 +10,151 @@ import SwiftUI
 class ViewModel: ObservableObject {
   @Published var movies = [MovieModel]()
   var showError: Bool = false
-  
-  var filterItems: [FilterModel] = []
   var errorMessage: String = ""
+  var filterItems: [FilterModel] = []
   
-  var yearSubItemData: [FilterModel] = []
-  var actorSubItemData: [FilterModel] = []
-  var directorSubItemData: [FilterModel] = []
-  var genreSubItemData: [FilterModel] = []
-  var universalSubItemData: [FilterModel] = []
-  
-  var filteredYear: [String] = []
-  var filteredGenre: [String] = []
-  var filteredDirectors: [String] = []
-  var filteredActors: [String] = []
-  
+  private var universalSubitemData: [FilterModel] = []
+  private var filteredYear: [String] = []
+  private var filteredGenre: [String] = []
+  private var filteredDirectors: [String] = []
+  private var filteredActors: [String] = []
   
   init() {
-    loadDataAndMakeFilters()
+    loadData()
   }
-  
-  private func loadDataAndMakeFilters(){
-    guard let url = Bundle.main.url(forResource: "movies", withExtension: "json") else {
+
+  private func loadData() {
+    do {
+      // Load the JSON file from the main bundle.
+      guard let url = Bundle.main.url(forResource: "movies", withExtension: "json") else {
+        showError = true
+        errorMessage = "Invalid JSON"
+        return
+      }
+
+      // Try to load the data from the URL.
+      let data = try Data(contentsOf: url)
+
+      // Decode the JSON data into an array of MovieModel using Codable.
+      let movies = try JSONDecoder().decode([MovieModel].self, from: data)
+
+      // Assign the movies to the instance property.
+      self.movies = movies
+
+      // Extract years, genres, actors, and directors from movies.
+      var years = [String]()
+      var genres = [String]()
+      var actors = [String]()
+      var directors = [String]()
+
+      for movie in movies {
+        years.append(contentsOf: movie.year.components(separatedBy: "-"))
+        genres.append(contentsOf: movie.genre.components(separatedBy: ", "))
+        actors.append(contentsOf: movie.actors.components(separatedBy: ", "))
+        directors.append(contentsOf: movie.director.components(separatedBy: ", "))
+      }
+
+      filteredYear =  years.removingDuplicates{$0.hashValue}.sorted{ $0 > $1}
+      filteredGenre = genres.removingDuplicates{$0.hashValue}.sorted{ $0 < $1}
+      filteredActors = actors.removingDuplicates{$0.hashValue}.sorted{ $0 < $1}
+      filteredDirectors = directors.removingDuplicates{$0.hashValue}.sorted{ $0 < $1}
+
+      // Finally, make dashboard filters.
+      makeDashBoardFilters()
+
+    } catch {
+      // Catch any errors during the process and handle them appropriately.
       showError = true
-      errorMessage = "Invalid JSON"
-      return
+      errorMessage = "Invalid JSON: \(error.localizedDescription)"
     }
-    
-    let data = try? Data(contentsOf: url)
-    let movies = try? JSONDecoder().decode([MovieModel].self, from: data!)
-    guard let movies = movies else {
-      showError = true
-      errorMessage = "Invalid JSON"
-      return
-    }
-    self.movies = movies
-    do {
-      filterAll()
-    }
+
   }
   
-  private func makeSubFilterModels() {
-    filteredGenre.removingDuplicates{ $0.hashValue }.forEach { genre in
-      genreSubItemData.append(
+  private func makeDashBoardFilters() {
+    for item in FilterType.allCases {
+      filterItems.append(
         FilterModel(
-          name: genre,
-          isSubItem: true,
-          filterType: .genre
+          name: item.rawValue,
+          image: item.rawValue,
+          subMenuItems: makeSubItem(itemType: item)
         )
       )
     }
-    filteredActors.removingDuplicates{ $0.hashValue }.forEach { act in
-      actorSubItemData.append(
-        FilterModel(
-          name: act,
-          isSubItem: true,
-          filterType: .actors
-        )
-      )
-    }
-    filteredDirectors.removingDuplicates{ $0.hashValue }.forEach { director in
-      directorSubItemData.append(
-        FilterModel(
-          name: director,
-          isSubItem: true,
-          filterType: .directors
-        )
-      )
-    }
-    filteredYear.removingDuplicates{ $0.hashValue }.forEach { year in
-      yearSubItemData.append(
-        FilterModel(
-          name: year,
-          isSubItem: true,
-          filterType: .year
-        )
-      )
-    }
-    movies.sorted{$0.title < $1.title}.forEach { item in
-      universalSubItemData.append(
-        FilterModel(
-          name: item.title,
-          image: item.poster,
-          presentAllMovies: true,
-          releaseDate: item.released
-        )
-      )
-    }
-    do {
-      makeFilterModels()
-    }
+    filterItems.removeLast()
   }
-  
-  private func makeFilterModels() {
-    filterItems = [
-      FilterModel(
-        name: "Year",
-        image: "Year",
-        subMenuItems: yearSubItemData.sorted{$0.name > $1.name}
-      ),
-      FilterModel(
-        name: "Genre",
-        image: "Genre",
-        subMenuItems: genreSubItemData.sorted{$0.name < $1.name}
-      ),
-      FilterModel(
-        name: "Directors",
-        image: "Directors",
-        subMenuItems: directorSubItemData.sorted{$0.name < $1.name}
-      ),
-      FilterModel(
-        name: "Actors",
-        image: "Actors",
-        subMenuItems: actorSubItemData.sorted{$0.name < $1.name}
-      ),
-      FilterModel(
-        name: "All Movies",
-        image: "All Movies",
-        subMenuItems: universalSubItemData
-      )
-    ]
-  }
-  
-  private func filterAll() {
-    movies.forEach { item in
-      filteredGenre += Array(Set(item.genre.components(separatedBy: ", ")))
-      filteredDirectors += Array(Set(item.director.components(separatedBy: ", ")))
-      filteredActors += Array(Set(item.actors.components(separatedBy: ", ")))
-      filteredYear += Array(Set(item.year.components(separatedBy: "-")))
+  private func makeSubItem(itemType: FilterType) -> [FilterModel] {
+    var data: [FilterModel] = []
+    switch itemType {
+    case .actors:
+      filteredActors.forEach { item in
+        data.append(FilterModel(name: item, isSubItem: true, filterType: .actors))
+      }
+
+    case .directors:
+      filteredDirectors.forEach { item in
+        data.append(FilterModel(name: item, isSubItem: true, filterType: .directors))
+      }
+
+    case .genre:
+      filteredGenre.forEach { item in
+        data.append(FilterModel(name: item, isSubItem: true, filterType: .genre))
+      }
+
+    case .year:
+      filteredYear.forEach { item in
+        data.append(FilterModel(name: item, isSubItem: true, filterType: .year))
+      }
+    case .allMovies:
+      movies.sorted{$0.title < $1.title}.forEach { item in
+        data.append(
+          FilterModel(
+            name: item.title,
+            image: item.poster,
+            presentAllMovies: true,
+            releaseDate: item.released
+          )
+        )
+      }
+    default :
+      break
     }
-    do {
-      makeSubFilterModels()
-    }
+
+    return data
   }
-  
-  func createTheFilteredList(
+
+  func makeFilteredList(
     filterType: FilterType,
     filterKey: String
   ) -> [MovieModel] {
     var data: [MovieModel] = []
-    
+
     switch filterType {
     case .actors:
       data = self.movies.filter {$0.actors.contains(filterKey)}
+
     case .directors:
       data = self.movies.filter {$0.director.contains(filterKey)}
-      
+
     case .genre:
       data = self.movies.filter {$0.genre.contains(filterKey)}
-      
+
     case .year:
       data = self.movies.filter {$0.year.contains(filterKey)}
-      
-    case .none:
-      data = []
+
+    default:
+      break
     }
-    
+
     return data
   }
-  
+
   private func networkCall() {
     let url = ""
     //TODO: Actual URL will be added here.
     guard let url = URL(string: url) else { return }
     URLSession.shared.dataTask(with: url) {[weak self] data, _, error in
       guard let self else { return }
-      
+
       if let data = data {
         do {
           let decodedData = try JSONDecoder().decode([MovieModel].self, from: data)

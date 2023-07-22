@@ -29,7 +29,10 @@ struct FilteredListView: View {
       }
     }
     .onAppear {
-      dataForTheList = viewModel.createTheFilteredList(filterType: filterType, filterKey: filterKey)
+      dataForTheList = viewModel.makeFilteredList(
+        filterType: filterType,
+        filterKey: filterKey
+      )
     }
     
     .navigationTitle("Showing results for: \(filterKey) ")
